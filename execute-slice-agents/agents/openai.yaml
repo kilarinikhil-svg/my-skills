@@ -1,0 +1,4 @@
+interface:
+  display_name: "Execute Slice Agents"
+  short_description: "Run vertical slices with parallel agents"
+  default_prompt: "Use $execute-slice-agents to run this approved vertical-slice implementation plan with goal-driven parallel workers."
