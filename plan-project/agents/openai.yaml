@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Project"
+  short_description: "Clarify software projects into build specs"
+  default_prompt: "Use $plan-project to turn my project idea into a clarified PRD/spec."
