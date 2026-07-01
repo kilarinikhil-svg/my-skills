@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Vertical Slice"
+  short_description: "Turn PRDs into tested vertical slices"
+  default_prompt: "Use $build-vertical-slice to turn this PRD into a vertical-slice implementation plan."
