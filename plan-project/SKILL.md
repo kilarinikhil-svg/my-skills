@@ -1,125 +1,89 @@
 ---
 name: plan-project
-description: Strict software project clarification workflow. Use when Codex is asked to clarify, scope, specify, or prepare a PRD/spec for a software project, app, feature, product idea, automation, API, website, data pipeline, or repo change; continue using it when the user answers prior planning questions, provides more project details, says to continue planning, or has not yet received the final PRD/spec. Especially use when relevant questions must be asked before implementation, requirements clarified, non-goals captured, acceptance criteria defined, or selectable planning options presented instead of open-ended prompts.
+description: Strict software project clarification workflow. Use when Codex is asked to clarify, scope, specify, or prepare a PRD/spec for a software project, app, feature, product idea, automation, API, website, data pipeline, or repo change; continue using it when the user answers planning questions, adds project details, says to continue planning, or has not yet received the final PRD/spec. Use especially when requirements, non-goals, acceptance criteria, or implementation-impacting choices must be resolved before implementation.
 ---
 
 # Plan Project
 
-## Core Rule
+## Operating Rule
 
-Do not produce a PRD/spec until high-impact ambiguity has been resolved.
+Clarify before drafting. Do not produce a PRD/spec until high-impact ambiguity is resolved.
 
-First discover what can be learned from the conversation and available environment. Then ask the missing questions needed to make the project spec complete. Ask in focused batches instead of dumping a long questionnaire.
+Explore before asking. Use the conversation and available repo/context to answer discoverable questions, especially when the user references an existing project, codebase, API, data model, or deployment target.
 
-Once this workflow has started, remain in planning mode across turns until the PRD/spec is produced or the user explicitly cancels, switches to implementation, or asks to use a different skill. Treat short answers, option selections, corrections, and added details as continuation input for the same clarification loop.
+Continue across turns. Treat answers, corrections, option selections, "continue", "next", and added details as continuation input until the PRD/spec is produced or the user explicitly cancels, switches away from planning, or requests another workflow.
 
 ## Workflow
 
-1. Determine whether this is a new planning request or a continuation of an active clarification loop.
-2. For a continuation, incorporate the user's latest answers into the current understanding before asking anything new.
-3. Restate the current project idea in one or two sentences when starting or when the understanding materially changes.
-4. Inspect available repo/context when the user references an existing project or when local context could answer technical questions.
-5. Identify unknowns that would change the product requirements, user experience, data/contracts, constraints, security, delivery expectations, or acceptance criteria.
-6. Ask only questions whose answers materially affect the PRD/spec.
-7. Continue asking until the project requirements are clear and decision-complete.
-8. Produce the PRD/spec and stop.
+1. Determine whether this is a new planning request or a continuation.
+2. Incorporate the user's latest input before asking anything new.
+3. Briefly restate the project idea when starting or when understanding changes materially.
+4. Inspect local context when it can answer technical, scope, integration, or constraint questions.
+5. Identify unknowns that affect requirements, UX, data/contracts, security, operations, delivery constraints, or acceptance criteria.
+6. Ask only material questions, in focused batches, until the requirements are decision-complete.
+7. If the user asks to implement before the completeness gate passes, state the missing decision briefly and ask the next focused question batch.
+8. When complete, output the standalone PRD/spec and stop. Do not ask whether to implement it.
 
-## Continuation Rules
+## Questioning
 
-- If the previous assistant message asked planning questions and the user answers them, continue this skill even if the user does not mention `$plan-project` again.
-- If the user says "continue", "next", "here are answers", "that sounds right", or gives partial project details before a PRD/spec exists, treat it as continuation input.
-- Do not enter implementation, execution loops, code editing, or vertical-slice planning until the PRD/spec has been produced or the user explicitly overrides the planning workflow.
-- If the user asks to implement before the Completeness Gate passes, explain the missing planning decision briefly and ask the next focused question batch.
-- If the user explicitly switches away from planning, stop this workflow and follow the newer instruction.
-
-## Questioning Rules
-
-Treat these categories as prompts for dynamic question generation, not as a fixed checklist:
-
-- Goal and success: target outcome, primary users, success metrics, must-have workflows.
-- Scope: MVP boundaries, explicit non-goals, nice-to-have items, future phases.
-- Existing context: current repo, tech stack, constraints, reusable systems, ownership boundaries.
-- UX and behavior: screens, actions, states, permissions, error handling, empty/loading states.
-- APIs and integrations: external services, credentials, rate limits, webhooks, data contracts.
-- Data and persistence: entities, relationships, lifecycle, retention, import/export, migrations.
-- Security and privacy: authentication, authorization, sensitive data, auditability, compliance.
-- Operations: deployment target, environments, observability, background jobs, rollback needs.
-- Quality: acceptance criteria, test expectations, performance, accessibility, reliability.
-- Delivery constraints: deadline, budget, preferred tools, prohibited tools, compatibility needs.
+Use these categories to generate specific questions, not as a checklist: goal and users, MVP scope and non-goals, current repo/stack, UX and behavior, APIs and integrations, data and persistence, security and privacy, operations, quality, delivery constraints.
 
 For each batch:
 
+- Ask no more than 5 questions unless the user requests a comprehensive checklist.
 - Group related questions under a short heading.
-- Ask no more than 5 questions unless the user explicitly requests a comprehensive checklist.
-- Prefer selectable multiple-choice options when they would reduce effort without hiding important tradeoffs.
-- Explain assumptions only when they are low impact.
-- Do not assume answers for high-impact unknowns.
+- Prefer selectable choices when they reduce effort without hiding tradeoffs.
+- Do not ask questions that inspection can answer.
+- Do not assume high-impact answers; record only low-impact defaults as assumptions.
 
-## Selection UX
+When `request_user_input` is available, use it for selectable clarification:
 
-Use selection-style clarification by default when a question has a small set of realistic answers.
+- Ask 1-3 short questions per call.
+- Provide 2-3 mutually exclusive, meaningful options.
+- Put the recommended/default option first and suffix its label with `(Recommended)`.
+- Do not add an `Other` option; the client provides it.
+- Use `autoResolutionMs` only when the choice is helpful but non-blocking.
 
-- If the current Codex surface exposes an allowed native option-selection/user-input tool, use it for up to 3 short questions at a time.
-- If no native selection tool is available, present numbered choices in Markdown and ask the user to reply with numbers, short labels, or corrections.
-- Include 2-4 options per question, and make the recommended/default option first only when there is a defensible default.
-- Always include a way for the user to provide a custom answer when the listed options may not fit.
-- Use free-text questions only when the answer space is genuinely open-ended or the user needs to describe domain-specific details.
-- Treat numeric replies, labels, and short confirmations as valid continuation input.
-
-Format fallback selection prompts like this:
-
-```markdown
-## Open Questions
-
-### Scope
-1. What should the MVP include?
-   - A. [Recommended option, if any]
-   - B. [Alternative]
-   - C. [Alternative]
-   - Custom: [Ask for a brief description]
-```
+When `request_user_input` is unavailable, use concise Markdown questions. Use free text only when the answer space is genuinely open-ended or domain-specific.
 
 ## Completeness Gate
 
-Before writing the PRD/spec, verify that these statements are answerable:
+Before writing the PRD/spec, verify that these are answerable:
 
 - What problem is being solved and for whom.
 - What is included in the first build and what is excluded.
 - What user-visible behavior must exist.
 - What data, APIs, integrations, or repo systems are involved.
-- What constraints or preferences must shape the product requirements.
+- What constraints or preferences shape the requirements.
 - How success will be accepted or tested.
 
-If any statement is not answerable, ask more questions instead of drafting the PRD/spec.
+If any item is not answerable, ask more questions instead of drafting.
 
-## Output Contract
+## Output
 
-When clarification is incomplete, output:
+When clarification is incomplete and `request_user_input` is available, provide only brief context needed for the user, then call `request_user_input`. Do not include a Markdown option list in the same response.
+
+When clarification is incomplete and `request_user_input` is unavailable, use:
 
 ```markdown
 ## Current Understanding
 [Brief restatement]
 
 ## Clarified So Far
-[Short bullets for durable decisions already answered, if any]
+[Durable decisions already answered, if any]
 
 ## Open Questions
 [Focused question batch]
 ```
 
-When clarification is complete, output:
+When clarification is complete, end the response with:
 
 ```markdown
-## PRD / Spec
+# PRD / Spec
 [Goal, users, requirements, non-goals, UX/API behavior, data/contracts, constraints, risks, acceptance criteria]
 
 ## Assumptions
 [Only low-impact assumptions]
 ```
 
-## Guardrails
-
-- Do not ask questions that can be answered by inspecting available files, configs, schemas, types, or docs.
-- Do not use a generic checklist when the project details imply more specific questions.
-- Do not over-plan low-risk details; record them as assumptions if they will not affect product requirements.
-- Keep the final PRD/spec decision-complete enough that product decisions are explicit rather than assumed.
+Do not append implementation offers, approval prompts, next-step commands, or extra questions after the final PRD/spec unless the user explicitly requested them.

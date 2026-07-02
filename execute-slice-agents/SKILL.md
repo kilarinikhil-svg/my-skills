@@ -31,11 +31,11 @@ If this structure is missing, ask for the missing plan details instead of execut
 3. Start or reuse a Codex goal when goal tooling is available. If only slash commands are available, provide a ready-to-run `/goal` prompt and stop.
 4. Build a slice dependency graph from each slice's `Depends on` field.
 5. Identify ready slices whose dependencies are already complete.
-6. Group independent ready slices into batches, with at most 3 worker agents by default unless the user specifies a different limit.
-7. Assign each worker exactly one slice with explicit ownership and validation instructions.
+6. Group independent ready slices into batches, with at most 3 worker agents by default unless the user specifies a different limit. If ready slices overlap in write scope, prefer disjoint responsibility splits. If the user explicitly prioritizes parallel execution despite overlap, run the ready slices as a speculative parallel batch and plan a coordinator merge pass.
+7. Assign each worker exactly one slice with explicit ownership and validation instructions. When worker tooling is available and implementation is approved, spawn a worker for the current slice even if only one worker can safely run.
 8. While workers run, perform only non-overlapping coordinator work such as reviewing shared context, preparing integration checks, or inspecting untouched areas.
 9. Review each worker result, changed files, and validation notes before accepting the work.
-10. Integrate the batch, resolve conflicts, and run the relevant tests/checks for that batch.
+10. Integrate the batch, resolve conflicts, compile compatible worker results into one coherent implementation, and run the relevant tests/checks for that batch.
 11. Mark slices complete only after integration and validation pass.
 12. Continue batching ready slices until all required slices are complete or a blocker prevents progress.
 13. Complete the goal when every required slice is integrated and validated.
@@ -56,7 +56,7 @@ When goal tools are unavailable:
 
 ## Worker Assignment Rules
 
-Spawn workers only for slices that can proceed independently.
+Spawn workers for slices that can proceed independently. If the user explicitly asks to save time with parallel execution, workers may handle ready slices that touch the same files, but the prompt must frame their work as independently developed candidate changes that the coordinator will merge.
 
 Each worker prompt must include:
 
@@ -68,15 +68,18 @@ Each worker prompt must include:
 - Instruction to edit directly in its workspace when asked to implement
 - Instruction that other workers may be editing the codebase in parallel
 - Instruction not to revert, overwrite, or refactor unrelated work
+- For speculative parallel batches with overlapping files, instruction to keep changes minimal, document expected merge points, and avoid broad rewrites that would make integration harder
 - Required final report: changed files, validation run, failures, risks, and any handoff notes
 
-Prefer worker agents for implementation tasks. Use explorer agents only when ownership or dependency safety cannot be determined from the plan and repository inspection.
+Prefer worker agents for implementation tasks. Overlapping files should limit default parallelism, not automatically convert the run into coordinator-only local implementation. When the user explicitly requests parallel speed over conflict avoidance, spawn workers up to the worker limit and treat conflict resolution as coordinator integration work. Use explorer agents only when ownership or dependency safety cannot be determined from the plan and repository inspection.
 
 ## Ownership And Parallelism
 
 - Default to a maximum of 3 worker agents per batch.
 - Do not assign two workers overlapping files, migrations, generated artifacts, shared schemas, public APIs, or package/dependency manifests in the same batch unless one is explicitly read-only.
-- If two ready slices overlap in likely write scope, run them sequentially or split ownership before spawning workers.
+- If two ready slices overlap in likely write scope, first try to split responsibility by function, selector, component, test area, or data contract. If the user explicitly requests parallel execution anyway, run them in a speculative parallel batch and merge the results afterward.
+- Do not use speculative overlapping workers for irreversible operations, migrations, dependency manifests, generated lockfiles, broad formatter-only rewrites, or public API/schema changes unless the plan explicitly isolates ownership.
+- Keep implementation local only when worker tooling is unavailable, the user has not approved agent delegation, the slice is too small to delegate coherently, or the coordinator must make an urgent integration fix after reviewing worker output.
 - Keep cross-cutting work with the first slice that needs it; do not create an unowned cleanup phase.
 - Preserve user changes and other workers' changes.
 
@@ -86,6 +89,7 @@ The coordinator owns final integration.
 
 - Inspect worker summaries before accepting changes.
 - Review changed files enough to catch scope drift, overlapping ownership, and missing acceptance criteria.
+- For speculative parallel batches, compare all worker diffs before applying final changes; preserve each slice's accepted behavior while removing duplicate helpers, reconciling state shape, and normalizing UI/rendering paths.
 - Run the slice's listed checks plus any relevant repo checks discovered locally.
 - Fix integration issues caused by the current batch before starting the next batch.
 - If a worker partially completes a slice, decide whether to finish it locally, retry with a narrower worker prompt, or report a blocker.
