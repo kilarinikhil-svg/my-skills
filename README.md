@@ -7,12 +7,14 @@ This folder contains local Codex skills. Each skill lives in its own directory w
 - `plan-project`: Clarifies and scopes a software project, feature, app, automation, API, website, data pipeline, or repository change before drafting a PRD/spec.
 - `build-vertical-slice`: Converts an approved PRD/spec into a Markdown implementation plan organized as tested vertical slices.
 - `execute-slice-agents`: Coordinates implementation of an approved vertical-slice plan, including dependency ordering, worker assignment, integration, and validation.
+- `slice-goal-command`: Converts a valid vertical-slice plan file into one paste-ready `/goal` command for `execute-slice-agents`.
 
 ## Suggested Workflow
 
 1. Use `plan-project` to clarify requirements and produce a standalone PRD/spec.
 2. Use `build-vertical-slice` to turn the PRD/spec into an implementation plan.
-3. Use `execute-slice-agents` after the implementation plan has been approved.
+3. Use `slice-goal-command` to validate the approved plan file and create its `/goal` handoff command.
+4. Paste that command to run `execute-slice-agents`.
 
 ## Folder Layout
 
@@ -23,6 +25,8 @@ This folder contains local Codex skills. Each skill lives in its own directory w
 |-- build-vertical-slice/
 |   `-- SKILL.md
 |-- execute-slice-agents/
+|   `-- SKILL.md
+|-- slice-goal-command/
 |   `-- SKILL.md
 |-- .system/
 |-- .agents/

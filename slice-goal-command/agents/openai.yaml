@@ -1,0 +1,4 @@
+interface:
+  display_name: "Slice Goal Command"
+  short_description: "Turn slice plans into goal commands"
+  default_prompt: "Use $slice-goal-command to create a /goal command from my approved vertical-slice plan file."
